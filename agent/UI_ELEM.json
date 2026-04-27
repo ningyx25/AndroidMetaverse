@@ -1,0 +1,32 @@
+{
+  "ui_elements": [
+    {
+      "name": "string (e.g., 'submit_button')",
+      "type": "enum (['button','text_input','label','icon','checkbox','dropdown','image','container','navigation_bar','status_bar','radio','slider','progress_bar','webview','tab','badge','other'])",
+      "text": "string (exact visible text, or '' if none)",
+      "description": {
+        "color": "string (dominant color(s) or hex code)",
+        "style": "string (e.g., 'rounded','flat','outlined','bold')"
+      },
+      "position": {
+        "x_min": "int",
+        "x_max": "int",
+        "y_min": "int",
+        "y_max": "int"
+      },
+      "state": {
+        "is_checked": "boolean (checked state, if checkable)",
+        "is_checkable": "boolean (can be toggled like checkbox/switch)",
+        "is_clickable": "boolean (responds to tap/click)",
+        "is_editable": "boolean (text input field is enabled for typing)",
+        "is_enabled": "boolean (interactable, not greyed out)",
+        "is_focused": "boolean (currently has input focus)",
+        "is_focusable": "boolean (can be focused)",
+        "is_long_clickable": "boolean (responds to long press)",
+        "is_scrollable": "boolean (can be scrolled)",
+        "is_selected": "boolean (currently in selected state)",
+        "is_visible": "boolean (visible to the user)"
+      }
+    }
+  ]
+}
