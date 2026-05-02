@@ -8,11 +8,11 @@ from openai import AsyncOpenAI
 from prompt import UI_ELEMENT_DESC, ELEMENT_JSON_SCHEMA
 
 TYPE_EN = {
-    "button": "button", "text_input": "text input", "label": "label", "icon": "icon",
-    "checkbox": "checkbox", "dropdown": "dropdown", "image": "image", "container": "container",
-    "navigation_bar": "navigation bar", "status_bar": "status bar", "radio": "radio button",
-    "slider": "slider", "progress_bar": "progress bar", "webview": "web view",
-    "tab": "tab", "badge": "badge", "other": "element"
+    "button": "button", "text_input": "text input", "label": "label",
+    "checkbox": "checkbox", "dropdown": "dropdown", "image": "image",
+    "navigation_bar": "navigation bar", "radio": "radio button",
+    "slider": "slider", "progress_bar": "progress bar",
+    "tab": "tab", "keyboard": "keyboard", "other": "element"
 }
 
 STATE_EN = {
@@ -28,9 +28,19 @@ def ui_to_natural_language(ui_str: str) -> str:
     name, ui_type, text = parts[0], parts[1], parts[2]
     states = [s.strip() for s in parts[4].split(",")] if len(parts) > 4 and parts[4].strip() else []
     type_en = TYPE_EN.get(ui_type, "element")
-    text_part = f" displaying \"{text}\"" if text else ""
+    if text:
+        if ui_type in ("button", "label", "tab", "radio", "checkbox"):
+            text_part = f" labeled \"{text}\""
+        elif ui_type == "text_input":
+            text_part = f" with placeholder \"{text}\""
+        elif ui_type == "navigation_bar":
+            text_part = f" titled \"{text}\""
+        else:
+            text_part = f" showing \"{text}\""
+    else:
+        text_part = ""
     state_part = ", ".join(STATE_EN[s] for s in states if s in STATE_EN and s != "is_visible")
-    desc = f"A {type_en}{text_part} ({name})"
+    desc = f"The \"{name}\" {type_en}{text_part}"
     if state_part:
         desc += f", currently {state_part}"
     return desc + "."
@@ -65,12 +75,13 @@ def build_nld(first_image_description: str) -> str | None:
         return None
 
 
-BASE_URL = "http://api.dreamxz.cn:9999/v1"
+BASE_URL = os.environ.get("TIONCICO_BASE_URL", "http://api.dreamxz.cn:9999/v1")
 API_KEY = os.environ.get("TIONCICO_API_KEY", "your_api_key_here")
 MODEL = "qwen3.6-plus"
+IMAGE_BASE_DIR = "/fs1/private/user/ningyongxin/workplace/proj/AndroidMetaverse"
 INPUT_FILE = "../data/metadata_with_prompt_pure.json"
-OUTPUT_FILE = "../data/metadata_with_desc_pure.json"
-MAX_CONCURRENCY = 1
+OUTPUT_FILE = "../data/metadata_with_desc_pure_v3.json"
+MAX_CONCURRENCY = 5
 
 client = AsyncOpenAI(api_key=API_KEY, base_url=BASE_URL)
 save_lock = asyncio.Lock()
@@ -93,29 +104,32 @@ async def describe_image_stream(image_path: str) -> str:
             {
                 "role": "user",
                 "content": [
-                    {"type": "text", "text": UI_ELEM_DESC},
+                    {"type": "text", "text": UI_ELEMENT_DESC},
                     {"type": "image_url", "image_url": {"url": f"data:{mime};base64,{b64}"}},
                 ],
             }
         ],
-        temperature=0.0,
+        temperature=0.2,
         response_format={
             "type": "json_schema",
             "json_schema": {
-                "name": "ui_elements_response",  # 必须有 name
-                "schema": JSON_SCHEMA            # schema 放在这里
+                "name": "ui_elements_response",
+                "schema": ELEMENT_JSON_SCHEMA
             }
         }
     )
-
-    chunks = []
+    text = ""
     async for chunk in stream:
-        if chunk.choices and chunk.choices[0].delta.content is not None:
-            delta = chunk.choices[0].delta.content
-            print(delta, end="", flush=True)
-            chunks.append(delta)
+        if not chunk.choices:
+            continue
+        delta_obj = chunk.choices[0].delta
+        reasoning = getattr(delta_obj, "reasoning_content", None) or ""
+        content = delta_obj.content or ""
+        if content:
+            print(content, end="", flush=True)
+            text += content
     print()
-    return "".join(chunks)
+    return text
 
 
 async def process_episode(sem: asyncio.Semaphore, episode_id: str, steps: list, base_dir: str) -> tuple:
@@ -132,6 +146,7 @@ async def process_episode(sem: asyncio.Semaphore, episode_id: str, steps: list, 
 
 async def main():
     base_dir = os.path.dirname(os.path.abspath(__file__))
+    image_base_dir = IMAGE_BASE_DIR
 
     with open(os.path.join(base_dir, INPUT_FILE), "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -183,7 +198,7 @@ async def main():
     print(f"Total episodes: {len(groups)}, Pending: {len(pending)}\n")
 
     sem = asyncio.Semaphore(MAX_CONCURRENCY)
-    tasks = [process_episode(sem, ep_id, groups[ep_id], base_dir) for ep_id in pending]
+    tasks = [process_episode(sem, ep_id, groups[ep_id], image_base_dir) for ep_id in pending]
 
     for coro in asyncio.as_completed(tasks):
         episode_id, description = await coro
@@ -210,7 +225,10 @@ async def main():
             with open(output_path, "w", encoding="utf-8") as f:
                 json.dump(results, f, ensure_ascii=False, indent=2)
 
-    print(f"Done. {len(results)}/{len(groups)} episodes processed. Output: {OUTPUT_FILE}")
+    # 返回剩余未处理数量作为退出码
+    remaining = sum(1 for ep_id in groups if results.get(ep_id, {}).get("first_image_description") is None)
+    print(f"Done. {len(groups) - remaining}/{len(groups)} episodes processed. Output: {OUTPUT_FILE}")
+    sys.exit(1 if remaining > 0 else 0)
 
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ ELEMENT_JSON_SCHEMA = {
             "description": "Array of UI elements represented as pipe-delimited strings",
             "items": {
                 "type": "string",
-                "pattern": "^[^|]+ \| (button|text_input|label|icon|checkbox|dropdown|image|container|navigation_bar|status_bar|radio|slider|progress_bar|webview|tab|badge|other) \| [^|]* \| \d+( \| (is_checked|is_checkable|is_clickable|is_editable|is_enabled|is_focused|is_focusable|is_long_clickable|is_scrollable|is_selected|is_visible)(,(is_checked|is_checkable|is_clickable|is_editable|is_enabled|is_focused|is_focusable|is_long_clickable|is_scrollable|is_selected|is_visible))*)?$",
+                "pattern": "^[^|]+ \| (button|text_input|label|checkbox|dropdown|image|navigation_bar|radio|slider|progress_bar|tab|keyboard|other) \| [^|]* \| \d+( \| (is_checked|is_checkable|is_clickable|is_editable|is_enabled|is_focused|is_focusable|is_long_clickable|is_scrollable|is_selected|is_visible)(,(is_checked|is_checkable|is_clickable|is_editable|is_enabled|is_focused|is_focusable|is_long_clickable|is_scrollable|is_selected|is_visible))*)?$",
                 "description": "Format: '<name> | <type> | <text> | <index> | <state_keys_if_any_true>'"
             }
         }
@@ -33,7 +33,7 @@ PAGES_JSON_SCHEMA = {
                         "description": "Array of UI elements represented as pipe-delimited strings",
                         "items": {
                             "type": "string",
-                            "pattern": "^[^|]+ \| (button|text_input|label|icon|checkbox|dropdown|image|container|navigation_bar|status_bar|radio|slider|progress_bar|webview|tab|badge|other) \| [^|]* \| \d+( \| (is_checked|is_checkable|is_clickable|is_editable|is_enabled|is_focused|is_focusable|is_long_clickable|is_scrollable|is_selected|is_visible)(,(is_checked|is_checkable|is_clickable|is_editable|is_enabled|is_focused|is_focusable|is_long_clickable|is_scrollable|is_selected|is_visible))*)?$",
+                            "pattern": "^[^|]+ \| (button|text_input|label|checkbox|dropdown|image|navigation_bar|radio|slider|progress_bar|tab|keyboard|other) \| [^|]* \| \d+( \| (is_checked|is_checkable|is_clickable|is_editable|is_enabled|is_focused|is_focusable|is_long_clickable|is_scrollable|is_selected|is_visible)(,(is_checked|is_checkable|is_clickable|is_editable|is_enabled|is_focused|is_focusable|is_long_clickable|is_scrollable|is_selected|is_visible))*)?$",
                             "description": "Format: '<name> | <type> | <text> | <index> | <state_keys_if_any_true>'"
                         }
                     },
@@ -66,9 +66,9 @@ Please complete the following two steps in your response:
 {"ui_elements": ["<name> | <type> | <text> | <index> | <state_keys_if_any_true>"]}
 
 [Field Definitions]
-- <name>: A string identifier for the UI element (e.g., 'submit_button').
+- <name>: A string identifier for the UI element (e.g., 'letter_keyboard', 'number_keyboard').
 - <type>: An enum value representing the category of the UI element. Must be one of: 
-["button", "text_input", "label", "icon", "checkbox", "dropdown", "image", "container", "navigation_bar", "status_bar", "radio", "slider", "progress_bar", "webview", "tab", "badge", "other"]
+["button", "text_input", "label", "checkbox", "dropdown", "image", "navigation_bar", "radio", "slider", "progress_bar", "tab", "keyboard", "other"]
 - <text>: The exact visible text content of the element, or "" if none.
 - <index>: A unique integer identifier for the element.
 - <state_keys_if_any_true>: a comma-separated list of state keys (from the set below) that evaluate to true. If no state is true, omit this part entirely (the string ends with the index). Do not include state keys that are false.
@@ -92,7 +92,7 @@ You are a UI design expert. Given a **task objective**, **sub-objectives for eac
 You will receive the following inputs:
 - **Task Objective**: A high-level description of the user's goal (e.g., "Book a flight from New York to Paris").
 - **Sub-objectives**: A list of step-by-step sub-objectives that break down the task into manageable parts (e.g., ["Select departure city", "Select destination city", "Choose travel dates", "Pick a flight", "Enter passenger details", "Make payment"]).
-- **Initial GUI Page Element Description**: A structured description of the UI elements present on the initial screen, formatted as a JSON object containing an array of pipe-delimited strings. Each string represents a UI element with the format: "<name> | <type> | <text> | <index> | <state_keys_if_any_true>". The "type" field is an enum that can be one of: ["button", "text_input", "label", "icon", "checkbox", "dropdown", "image", "container", "navigation_bar", "status_bar", "radio", "slider", "progress_bar", "webview", "tab", "badge", "other"]. The final part of the string lists any state keys (from the set below) that are true for that element.
+- **Initial GUI Page Element Description**: A structured description of the UI elements present on the initial screen, formatted as a JSON object containing an array of pipe-delimited strings. Each string represents a UI element with the format: "<name> | <type> | <text> | <index> | <state_keys_if_any_true>". The "type" field is an enum that can be one of: ["button", "text_input", "label", "checkbox", "dropdown", "image", "navigation_bar", "radio", "slider", "progress_bar", "tab", "keyboard", "other"]. The final part of the string lists any state keys (from the set below) that are true for that element.
 
 [State Key Set]
 "state": {"is_checked": "boolean (checked state, if checkable)", "is_checkable": "boolean (can be toggled like checkbox/switch)", "is_clickable": "boolean (responds to tap/click)", "is_editable": "boolean (text input field is enabled for typing)", "is_enabled": "boolean (interactable, not greyed out)", "is_focused": "boolean (currently has input focus)", "is_focusable": "boolean (can be focused)", "is_long_clickable": "boolean (responds to long press)", "is_scrollable": "boolean (can be scrolled)", "is_selected": "boolean (currently in selected state)", "is_visible": "boolean (visible to the user)"},"index": "int (unique identifier for the element)"}
