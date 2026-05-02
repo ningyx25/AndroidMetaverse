@@ -1,5 +1,44 @@
-image/
+# 环境与密钥
 .env
-.venv/
-__pycache__/
+.env.*
+!.env.example
+
+# 数据与图像（体积大，不入库）
 data/
+image/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# 虚拟环境
+.venv/
+venv/
+env/
+ENV/
+
+# 测试与覆盖率
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# 日志与临时文件
+*.log
+*.tmp
+*.bak
